@@ -1,16 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EditTodo from "./EditTodo";
 
 export const Wrapper = () => {
   const [todos, setTodos] = useState([]);
   const [input, setInput] = useState("");
 
+  useEffect(() => {
+    if (localStorage.getItem("localTodos")) {
+      const storedList = JSON.parse(localStorage.getItem("localTodos"));
+      setTodos(storedList);
+    }
+  }, []);
+
   const addTodo = () => {
     if (input.trim()) {
-      setTodos([
-        ...todos,
-        { id: Date.now(), text: input, completed: false, isEditing: false },
-      ]);
+      const todo = {
+        id: Date.now(),
+        text: input,
+        completed: false,
+        isEditing: false,
+      };
+      setTodos([...todos, todo]);
+
+      localStorage.setItem("localTodos", JSON.stringify([...todos, todo]));
       setInput("");
     }
   };
@@ -21,6 +33,12 @@ export const Wrapper = () => {
         t.id === id ? { ...t, text, isEditing: !t.isEditing } : t
       )
     );
+  };
+
+  const deleteTodo = (todo) => {
+    const deletedTodo = todos.filter((t) => t.id !== todo.id);
+    setTodos(deletedTodo);
+    localStorage.setItem("localTodos", JSON.stringify(deletedTodo));
   };
 
   return (
@@ -94,7 +112,7 @@ export const Wrapper = () => {
 
               <button
                 className="ml-2 border-none p-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
-                onClick={() => setTodos(todos.filter((t) => t.id !== todo.id))}
+                onClick={() => deleteTodo(todo)}
               >
                 Delete
               </button>
